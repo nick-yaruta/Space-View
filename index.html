@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сонячна Система 2D/3D</title>
+    <!-- Підключення Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050505;
+            background-image: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none; 
+            -webkit-user-select: none;
+        }
+
+        /* Зірки */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* 2D Вигляд */
+        #mainView {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s;
+        }
+        
+        .solar-system {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            transition: transform 1.2s ease-in-out, opacity 0.5s;
+        }
+
+        /* Сонце */
+        .sun {
+            position: absolute;
+            width: 60px; 
+            height: 60px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle at 50% 50%, #ffd700, #ff8c00, #ff4500);
+            border-radius: 50%;
+            box-shadow: 0 0 40px #ff4500, 0 0 80px rgba(255, 69, 0, 0.4);
+            z-index: 10;
+            transition: all 0.3s ease-in-out; 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+        }
+        
+        .sun:hover {
+            transform: translate(-50%, -50%) scale(1.15); 
+            box-shadow: 0 0 60px #ff4500, 0 0 120px rgba(255, 69, 0, 0.8), 0 0 200px rgba(255, 140, 0, 0.4);
+        }
+
+        .sun-label {
+            position: absolute;
+            top: 50%;
+            left: 100%; 
+            transform: translateY(-50%) translateX(10px);
+            font-size: 14px;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.15); 
+            padding: 4px 8px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+            color: #ffd700; 
+            border: 1px solid #ffaa0066; 
+            pointer-events: none; 
+        }
+
+        .sun:hover .sun-label { opacity: 1; }
+
+        /* Орбіти */
+        .orbit {
+            position: absolute;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            z-index: 5; 
+        }
+
+        .planet-pivot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            animation: orbit-rotate linear infinite;
+            z-index: 20; 
+            pointer-events: none; 
+        }
+
+        .planet {
+            position: absolute;
+            top: 0; 
+            left: 50%;
+            transform: translate(-50%, -50%); 
+            border-radius: 50%;
+            box-shadow: inset -3px -3px 8px rgba(0,0,0,0.6), 0 0 4px rgba(255,255,255,0.2);
+            cursor: pointer;
+            pointer-events: auto; 
+            transition: transform 0.2s;
+        }
+
+        .planet-label {
+            position: absolute;
+            top: 50%; 
+            left: 100%; 
+            transform: translateY(-50%) translateX(10px); 
+            animation: counter-rotate linear infinite;
+            animation-duration: var(--pivot-speed); 
+            font-size: 12px; 
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.15); 
+            padding: 3px 7px; 
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .planet:hover {
+            transform: translate(-50%, -50%) scale(1.3); 
+            box-shadow: 0 0 10px white;
+            z-index: 100;
+        }
+
+        .planet:hover .planet-label { opacity: 1; }
+        
+        .planet-pivot:has(.planet:hover) { animation-play-state: paused; }
+        .planet-pivot:has(.planet:hover) .planet-label { animation-play-state: paused; }
+
+        @keyframes orbit-rotate {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        @keyframes counter-rotate {
+            0% { transform: translateY(-50%) translateX(10px) rotate(0deg); }
+            100% { transform: translateY(-50%) translateX(10px) rotate(-360deg); }
+        }
+
+        /* Стилі планет 2D */
+        .planet-mercury { background: #a5a5a5; }
+        .planet-venus { background: #e6c288; }
+        .planet-earth { background: #4da6ff; }
+        .planet-mars { background: #ff6b4a; }
+        .planet-jupiter { background: linear-gradient(135deg, #d4a373 20%, #e9c46a 40%, #d4a373 60%, #bc6c25 80%); }
+        .planet-saturn { background: #f4e4ba; }
+        .planet-saturn::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 160%; height: 160%;
+            border: 4px solid rgba(200, 180, 140, 0.5);
+            border-radius: 50%;
+        }
+        .planet-uranus { background: #a8e6cf; }
+        .planet-neptune { background: #4b7bec; }
+
+
+        /* 3D Детальний Вигляд */
+        #detailView {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s; 
+            z-index: 50;
+        }
+
+        #detailView.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Контейнер Three.js - РІВНО 50% */
+        #threeDContainer {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 50%; 
+            height: 100%;
+            background-color: transparent; 
+        }
+
+        /* ІНФОРМАЦІЙНА ПАНЕЛЬ - РІВНО 50% */
+        #infoPanel {
+            position: absolute; 
+            right: 0; 
+            top: 0;
+            bottom: 0; 
+            
+            width: 50%;
+            box-sizing: border-box; 
+            
+            padding: 60px 50px;
+            
+            background: linear-gradient(to right, rgba(15, 15, 20, 0.95), rgba(30, 30, 45, 0.9));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+            
+            overflow-y: auto;
+            opacity: 0;
+            transform: translateX(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            
+            display: flex;
+            flex-direction: column;
+            justify-content: center; 
+            z-index: 100;
+        }
+        
+        #infoPanel.info-ready {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        #infoPanel h1 {
+            color: #fff;
+            font-size: 3.5rem;
+            font-weight: 300; 
+            margin-bottom: 20px;
+            margin-top: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #infoPanel h1::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: currentColor; 
+            margin-top: 20px;
+            border-radius: 2px;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        #infoPanel p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            color: #b0b0d0; 
+            font-weight: 300;
+        }
+        
+        .more-info-link {
+            display: inline-block;
+            padding: 15px 40px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            align-self: flex-start;
+        }
+
+        .more-info-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        #closeDetail {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 25px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            z-index: 101;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            backdrop-filter: blur(5px);
+        }
+
+        #closeDetail:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #fff;
+        }
+        
+        .ui-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            align-items: flex-end; 
+            gap: 10px;
+            z-index: 1000;
+            transition: opacity 0.5s; 
+        }
+
+        #info-toggle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ffd700;
+            color: #050505;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        #info-toggle:hover {
+            transform: scale(1.1);
+            background-color: #ffaa00;
+        }
+
+        #info-content {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s;
+            max-width: 250px;
+        }
+
+        #info-content.is-visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        #info-content h2 { margin: 0 0 5px 0; font-size: 16px; color: #ffd700; }
+        #info-content p { margin: 0; font-size: 12px; color: #aaa; }
+
+    </style>
+</head>
+<body>
+
+    <div class="stars" id="starContainer"></div>
+
+    <div id="mainView">
+        <div class="solar-system" id="solarSystem">
+            <div class="sun" id="sunElement"> 
+                <div class="sun-label">Сонце</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="detailView">
+        <div id="threeDContainer"></div>
+        <div id="infoPanel">
+            <!-- JS content -->
+        </div>
+        <button id="closeDetail">Назад до системи</button>
+    </div>
+
+    <div class="ui-panel" id="uiPanel">
+        <button id="info-toggle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 16v-4"></path>
+                <path d="M12 8h.01"></path>
+            </svg>
+        </button>
+        <div id="info-content">
+            <h2>Сонячна Система 2D</h2>
+            <p>Наведіть на планету, щоб зупинити обертання, або натисніть, щоб переглянути 3D-модель.</p>
+        </div>
+    </div>
+
+    <script>
+        const sunVertexShader = `
+            varying vec2 vUv;
+            varying vec3 vNormal;
+            uniform float time;
+            float hash(float n) { return fract(sin(n) * 43758.5453123); }
+            float noise(vec3 x) {
+                vec3 p = floor(x);
+                vec3 f = fract(x);
+                f = f * f * (3.0 - 2.0 * f);
+                float n = p.x + p.y * 57.0 + 113.0 * p.z;
+                return mix(mix(mix(hash(n + 0.0), hash(n + 1.0), f.x),
+                               mix(hash(n + 57.0), hash(n + 58.0), f.x), f.y),
+                           mix(mix(hash(n + 113.0), hash(n + 114.0), f.x),
+                               mix(hash(n + 170.0), hash(n + 171.0), f.x), f.y), f.z);
+            }
+            void main() {
+                vUv = uv;
+                vNormal = normal;
+                float displacement = noise(position * 2.0 + time * 0.5) * 0.3;
+                vec3 newPosition = position + normal * displacement;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+            }
+        `;
+
+        const sunFragmentShader = `
+            varying vec3 vNormal;
+            uniform vec3 color;
+            void main() {
+                float intensity = pow(0.7 - dot(vNormal, vec3(0, 0, 1.0)), 2.0);
+                gl_FragColor = vec4(color + vec3(1.0, 0.5, 0.0) * intensity, 1.0);
+            }
+        `;
+
+        const planetsData = [
+            { 
+                name: 'Меркурій', size: 15, distance: 50, speed: 12, class: 'planet-mercury', color: 0xa5a5a5, 
+                texture: 'textures/mercury.jpeg',
+                link: 'mercury.html', 
+                description: 'Меркурій є найближчою планетою до Сонця, що робить його одним із найгарячіших об\'єктів. Його поверхня, що нагадує Місяць, вкрита кратерами. Через відсутність атмосфери, перепади температури між денною та нічною сторонами є екстремальними. Один рік тут триває всього 88 земних днів.' 
+            },
+            { 
+                name: 'Венера', size: 22, distance: 80, speed: 21, class: 'planet-venus', color: 0xe6c288, 
+                texture: 'textures/venus.jpeg',
+                link: 'venus.html', 
+                description: 'Венера – друга планета від Сонця і найгарячіша планета в системі. Її щільна атмосфера, що складається переважно з вуглекислого газу, створює потужний парниковий ефект, підвищуючи температуру до +460°C. Венера обертається дуже повільно і у зворотному напрямку, ніж більшість планет.' 
+            },
+            { 
+                name: 'Земля', size: 24, distance: 110, speed: 30, class: 'planet-earth', color: 0x4da6ff, 
+                texture: 'textures/earth.jpeg',
+                link: 'earth.html', 
+                description: 'Земля – єдина відома планета у Всесвіті, що має великі запаси рідкої води на поверхні та сприятливі умови для життя. Вона має один природний супутник, Місяць, і її атмосфера захищає нас від сонячної радіації та метеоритів. Це третя планета від Сонця.' 
+            },
+            { 
+                name: 'Марс', size: 20, distance: 140, speed: 45, class: 'planet-mars', color: 0xff6b4a, 
+                texture: 'textures/mars.jpeg',
+                link: 'mars.html', 
+                description: 'Марс, або Червона планета, отримав свій колір завдяки високому вмісту оксиду заліза (іржі) на поверхні. Хоча зараз він холодний і пустельний, є докази того, що в минулому на ньому була рідка вода. Марс має два маленькі супутники, Фобос та Деймос, і є об\'єктом активного дослідження космічними апаратами.' 
+            },
+            { 
+                name: 'Юпітер', size: 45, distance: 200, speed: 90, class: 'planet-jupiter', color: 0xbc6c25, 
+                texture: 'textures/jupiter.jpeg',
+                link: 'jupiter.html', 
+                description: 'Юпітер – найбільша планета Сонячної системи, газовий гігант, маса якого перевищує сумарну масу всіх інших планет. Його найвідоміша риса — Велика Червона Пляма, гігантський шторм, що лютує вже сотні років. Юпітер має величезну кількість супутників, включаючи чотири великі – Іо, Європу, Ганімед та Каллісто.' 
+            },
+            { 
+                name: 'Сатурн', size: 40, distance: 270, speed: 135, class: 'planet-saturn', color: 0xf4e4ba, 
+                texture: 'textures/saturn.jpeg',
+                link: 'saturn.html', 
+                description: 'Сатурн – газовий гігант, відомий своєю вражаючою системою кілець, які складаються переважно з мільярдів частинок льоду та каміння. Незважаючи на величезний розмір, Сатурн має найменшу щільність серед усіх планет – він міг би плавати у воді! Також він має велику кількість супутників, серед яких виділяється Титан.' 
+            },
+            { 
+                name: 'Уран', size: 30, distance: 330, speed: 180, class: 'planet-uranus', color: 0xa8e6cf, 
+                texture: 'textures/uranus.jpeg',
+                link: 'uranus.html', 
+                description: 'Уран – крижаний гігант, що має незвичайний нахил осі обертання – він обертається "на боці". Через це пори року на Урані дуже екстремальні. Він має блідо-блакитний колір завдяки метану в атмосфері, який поглинає червоне світло.' 
+            },
+            { 
+                name: 'Нептун', size: 28, distance: 380, speed: 240, class: 'planet-neptune', color: 0x4b7bec, 
+                texture: 'textures/neptune.jpeg',
+                link: 'neptune.html', 
+                description: 'Нептун – найвіддаленіша планета від Сонця і другий за розміром крижаний гігант. Він відомий своїми найсильнішими вітрами у Сонячній системі. Незважаючи на величезну відстань, він має яскравий синій колір, що відрізняє його від блідого Урана. Його найбільший супутник – Тритон.' 
+            }
+        ];
+        
+        const sunData = {
+            name: 'Сонце', size: 60, color: 0xffd700, isStar: true, 
+            texture: 'textures/sun.jpeg',
+            link: 'sun.html', 
+            description: 'Сонце — це зірка класу G2V, центр нашої Сонячної системи, яка містить понад 99.8% її загальної маси. Воно складається з гарячої плазми і генерує енергію через ядерний синтез, забезпечуючи світло та тепло, необхідні для підтримки життя на Землі. Його діаметр приблизно у 109 разів більший за діаметр Землі.'
+        };
+
+        const system = document.getElementById('solarSystem');
+        const starContainer = document.getElementById('starContainer');
+        const mainView = document.getElementById('mainView');
+        const detailView = document.getElementById('detailView');
+        const threeDContainer = document.getElementById('threeDContainer');
+        const infoPanel = document.getElementById('infoPanel');
+        const closeDetailButton = document.getElementById('closeDetail');
+        const uiPanel = document.getElementById('uiPanel');
+        const infoToggle = document.getElementById('info-toggle');
+        const infoContent = document.getElementById('info-content');
+        const sunElement = document.getElementById('sunElement'); 
+
+        let scene, camera, renderer, planetMesh, planetLight, glowMesh;
+        let animationFrameId;
+        let currentPausedPivot = null; 
+
+        function intToHexString(colorInt) { return `#${colorInt.toString(16).padStart(6, '0')}`; }
+        function intToRgbaString(colorInt, alpha) {
+            const r = (colorInt >> 16) & 255;
+            const g = (colorInt >> 8) & 255;
+            const b = colorInt & 255;
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        function createStars() {
+            const starCount = 150;
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                const size = Math.random() * 2 + 1;
+                const duration = Math.random() * 3 + 2;
+                star.style.left = `${x}%`;
+                star.style.top = `${y}%`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.setProperty('--duration', `${duration}s`);
+                starContainer.appendChild(star);
+            }
+        }
+
+        function createPlanets() {
+            planetsData.forEach(data => {
+                const orbit = document.createElement('div');
+                orbit.className = 'orbit';
+                orbit.style.width = `${data.distance * 2}px`;
+                orbit.style.height = `${data.distance * 2}px`;
+                orbit.style.top = `calc(50% - ${data.distance}px)`;
+                orbit.style.left = `calc(50% - ${data.distance}px)`;
+                system.appendChild(orbit);
+
+                const pivot = document.createElement('div');
+                pivot.className = 'planet-pivot';
+                pivot.style.width = `${data.distance * 2}px`;
+                pivot.style.height = `${data.distance * 2}px`;
+                pivot.style.animationDuration = `${data.speed}s`;
+
+                const planet = document.createElement('div');
+                planet.className = `planet ${data.class}`;
+                planet.style.width = `${data.size}px`;
+                planet.style.height = `${data.size}px`;
+                
+                planet.onclick = (event) => showPlanetDetail(data, event.currentTarget.parentElement, event.currentTarget);
+
+                const label = document.createElement('div');
+                label.className = 'planet-label';
+                label.innerText = data.name;
+                label.style.setProperty('--pivot-speed', `${data.speed}s`); 
+                
+                const mainColorHex = intToHexString(data.color);
+                const borderColorRgba = intToRgbaString(data.color, 0.6); 
+                label.style.color = mainColorHex;
+                label.style.border = `1px solid ${borderColorRgba}`;
+                
+                planet.appendChild(label);
+                pivot.appendChild(planet);
+                system.appendChild(pivot);
+            });
+        }
+        
+        sunElement.onclick = (event) => showPlanetDetail(sunData, null, event.currentTarget);
+
+        function initThreeJS(objectData) {
+            if (renderer) {
+                threeDContainer.removeChild(renderer.domElement);
+                scene = null;
+                renderer = null; 
+                cancelAnimationFrame(animationFrameId);
+            }
+
+            scene = new THREE.Scene();
+            
+            const aspect = threeDContainer.clientWidth / threeDContainer.clientHeight;
+            camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+            camera.position.z = 6; 
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(threeDContainer.clientWidth, threeDContainer.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            threeDContainer.appendChild(renderer.domElement);
+
+            const textureLoader = new THREE.TextureLoader();
+
+            let geometryRadius = 1.2;
+            if (objectData.name === 'Сатурн') {
+                geometryRadius = 0.8; 
+            }
+            
+            const geometry = new THREE.SphereGeometry(geometryRadius, 64, 64);
+
+            if (objectData.isStar) {
+                let sunMaterial;
+                if (objectData.texture) {
+                     const sunTexture = textureLoader.load(objectData.texture);
+                     sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture }); 
+                } else {
+                     sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffd700 }); 
+                }
+                
+                planetMesh = new THREE.Mesh(geometry, sunMaterial);
+                scene.add(planetMesh);
+
+                const spriteMaterial = new THREE.SpriteMaterial({
+                    map: new THREE.CanvasTexture(generateSprite()),
+                    color: 0xff4500,
+                    transparent: true,
+                    blending: THREE.AdditiveBlending,
+                    opacity: 0.7
+                });
+                glowMesh = new THREE.Sprite(spriteMaterial);
+                glowMesh.scale.set(4, 4, 1); 
+                scene.add(glowMesh);
+
+            } else {
+                let material;
+                if (objectData.texture) {
+                    const texture = textureLoader.load(objectData.texture);
+                    material = new THREE.MeshPhongMaterial({ 
+                        map: texture,
+                        bumpMap: texture,
+                        bumpScale: 0.05,
+                        shininess: 5 
+                    });
+                } else {
+                    material = new THREE.MeshPhongMaterial({ color: objectData.color });
+                }
+                
+                planetMesh = new THREE.Mesh(geometry, material);
+                scene.add(planetMesh);
+                
+                if (objectData.name === 'Сатурн') {
+                    const ringTexture = textureLoader.load('textures/saturn-ring.jpeg');
+                    const ringGeo = new THREE.RingGeometry(1.0, 1.6, 64); 
+                    
+                    const pos = ringGeo.attributes.position;
+                    const uv = ringGeo.attributes.uv;
+                    const v3 = new THREE.Vector3();
+                    const innerRadius = 1.0;
+                    const outerRadius = 1.6;
+
+                    for (let i = 0; i < pos.count; i++) {
+                        v3.fromBufferAttribute(pos, i);
+                        const radius = v3.length();
+                        const u = (radius - innerRadius) / (outerRadius - innerRadius);
+                        uv.setXY(i, u, 0.5); 
+                    }
+
+                    const ringMat = new THREE.MeshBasicMaterial({ 
+                        map: ringTexture,
+                        side: THREE.DoubleSide,
+                        transparent: true,
+                        opacity: 0.9,
+                        color: 0xffffff 
+                    });
+                    
+                    const ring = new THREE.Mesh(ringGeo, ringMat);
+                    ring.rotation.x = Math.PI / 2.2;
+                    scene.add(ring);
+                }
+
+                const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+                dirLight.position.set(10, 5, 10); 
+                scene.add(dirLight);
+                
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.5); 
+                scene.add(ambientLight);
+            }
+            
+            window.removeEventListener('resize', onWindowResize); 
+            window.addEventListener('resize', onWindowResize);
+
+            animate();
+        }
+
+        function generateSprite() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const context = canvas.getContext('2d');
+            const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.2, 'rgba(255, 150, 0, 0.6)');
+            gradient.addColorStop(0.5, 'rgba(255, 50, 0, 0.2)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, 64, 64);
+            return canvas;
+        }
+
+        function onWindowResize() {
+            if (detailView.classList.contains('active') && camera && renderer) {
+                const aspect = threeDContainer.clientWidth / threeDContainer.clientHeight;
+                camera.aspect = aspect;
+                camera.updateProjectionMatrix();
+                renderer.setSize(threeDContainer.clientWidth, threeDContainer.clientHeight);
+            }
+        }
+        
+        function animate() {
+            animationFrameId = requestAnimationFrame(animate);
+
+            if (planetMesh) {
+                planetMesh.rotation.y += 0.001; 
+                if (planetMesh.photosphere) { 
+                    const time = performance.now() * 0.0001; 
+                    const wobble = 1 + (Math.sin(time * 5) * 0.03); 
+                    planetMesh.photosphere.scale.set(wobble, wobble, wobble);
+                }
+            }
+
+            if (renderer) {
+                renderer.render(scene, camera);
+            }
+        }
+        
+        function showPlanetDetail(data, pivotElement, element) { 
+            const scaleFactor = 5;
+            
+            if (pivotElement) {
+                currentPausedPivot = pivotElement;
+                currentPausedPivot.style.animationPlayState = 'paused'; 
+                
+                const label = pivotElement.querySelector('.planet-label');
+                if (label) label.style.animationPlayState = 'paused';
+            } else {
+                currentPausedPivot = null; 
+            }
+            
+            // Розрахунок для точного центрування планети
+            const rect = element.getBoundingClientRect();
+            const sysRect = system.getBoundingClientRect();
+            
+            // Локальні координати центру планети всередині system
+            const localElemX = (rect.left + rect.width / 2) - sysRect.left;
+            const localElemY = (rect.top + rect.height / 2) - sysRect.top;
+            
+            // Встановлюємо точку трансформації саме в це локальне місце
+            system.style.transformOrigin = `${localElemX}px ${localElemY}px`;
+            
+            // Цільова точка: центр лівої половини екрану (25% ширини вікна)
+            const targetX = window.innerWidth * 0.25; 
+            const targetY = window.innerHeight * 0.5;
+            
+            // Поточна точка на екрані (абсолютна)
+            const currentX = rect.left + rect.width / 2;
+            const currentY = rect.top + rect.height / 2;
+
+            // Зсув = різниця між ціллю і поточною точкою
+            const translateX = targetX - currentX;
+            const translateY = targetY - currentY;
+
+            system.style.transition = 'transform 1.2s ease-in-out';
+            system.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleFactor})`;
+            
+            mainView.style.pointerEvents = 'none';
+            uiPanel.style.opacity = 0; 
+
+            setTimeout(() => {
+                mainView.style.opacity = 0; 
+                system.style.transition = 'none';
+                system.style.transform = 'translate(0, 0) scale(1)'; 
+                // Скидаємо origin, щоб не зламати верстку при поверненні
+                system.style.transformOrigin = '50% 50%';
+
+                const planetColorHex = intToHexString(data.color);
+                
+                infoPanel.innerHTML = `
+                    <h1 style="color: ${planetColorHex}">${data.name}</h1>
+                    <p><strong>Опис:</strong> ${data.description}</p>
+                    <a href="${data.link}" class="more-info-link">Дивитися більше...</a>
+                `;
+
+                initThreeJS(data);
+                detailView.classList.add('active');
+
+                setTimeout(() => {
+                    infoPanel.classList.add('info-ready');
+                }, 100); 
+                
+            }, 1200); 
+        }
+
+        closeDetailButton.onclick = () => {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            
+            if (currentPausedPivot) {
+                const label = currentPausedPivot.querySelector('.planet-label');
+                if (label) label.style.animationPlayState = '';
+                
+                currentPausedPivot.style.animationPlayState = ''; 
+                currentPausedPivot = null;
+            }
+
+            detailView.classList.remove('active');
+            infoPanel.classList.remove('info-ready'); 
+            
+            setTimeout(() => {
+                mainView.style.opacity = 1;
+                mainView.style.pointerEvents = 'auto';
+                uiPanel.style.opacity = 1; 
+                system.style.transition = 'opacity 0.5s'; 
+            }, 500); 
+        };
+        
+        infoToggle.addEventListener('click', () => {
+            infoContent.classList.toggle('is-visible');
+        });
+
+        window.onload = function () {
+            createStars();
+            createPlanets();
+        }
+    </script>
+</body>
+</html>
