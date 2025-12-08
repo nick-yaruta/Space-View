@@ -1,3 +1,6 @@
-fastapi
+flask
+wikipedia-api
 httpx
 python-dotenv
+requests
+os

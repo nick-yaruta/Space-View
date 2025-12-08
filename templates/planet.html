@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Деталі Планети</title>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050505;
+            background-image: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+            min-height: 100vh;
+            width: 100vw;
+            overflow-x: hidden;    /* прибрали overflow:hidden */
+            overflow-y: auto;      /* дозволяємо скролити */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+        }
+
+
+        /* --- Зірки --- */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* --- Основний контейнер --- */
+        #container {
+            position: relative;
+            width: 100%;
+            min-height: 100vh; /* щоб блок займав весь екран */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* було center → тепер початок зверху */
+            padding-top: 50px; /* відступ щоб красиво виглядало */
+            padding-bottom: 50px;
+            z-index: 10;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        /* --- Секція Інформації (Картка) --- */
+        #info-panel {
+            width: 100%;
+            max-width: 800px; 
+            padding: 50px; 
+            box-sizing: border-box;
+            text-align: left; 
+            
+            /* Стиль картки */
+            background: rgba(20, 20, 30, 0.6);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Типографіка */
+        h1 {
+            font-size: 4rem;
+            font-weight: 300;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #ffd700;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        p.description {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #b0b0d0;
+            font-weight: 300;
+            text-align: justify;
+            margin: 0;
+        }
+
+        /* Сітка характеристик */
+        .stats-grid {
+            display: none !important;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s, background 0.3s;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        /* Кнопка "Назад" */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 40px;
+            margin-top: 30px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            align-self: flex-start; /* Вирівнювання кнопки ліворуч */
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #ffd700;
+            color: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        /* Мобільна адаптація */
+        @media (max-width: 768px) {
+            #info-panel {
+                padding: 30px;
+            }
+            h1 { font-size: 3rem; }
+            .stats-grid {
+                grid-template-columns: 1fr; /* 1 колонка на мобільному */
+            }
+            .back-btn {
+                align-self: center;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            p.description {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Фонові зірки -->
+    <div class="stars" id="starContainer"></div>
+
+    <div id="container">
+        <!-- Інформаційна картка -->
+        <div id="info-panel">
+            <div>
+                <h1 id="p-name">Назва Планети</h1>
+                <div class="subtitle" id="p-type">Тип планети</div>
+            </div>
+
+            <!-- Сітка характеристик -->
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Відстань до Сонця</span>
+                    <span class="stat-value" id="s-distance">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Тривалість доби</span>
+                    <span class="stat-value" id="s-day">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Радіус</span>
+                    <span class="stat-value" id="s-radius">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Температура</span>
+                    <span class="stat-value" id="s-temp">-</span>
+                </div>
+            </div>
+
+            <p class="description" id="p-desc">
+                Опис завантажується...
+            </p>
+
+            <div id="nasa-photos"
+     style="margin-top:20px; display:flex; gap:15px; flex-wrap:wrap;"></div>
+
+            <!-- Посилання назад -->
+            <a href="/" class="back-btn">← Повернутися</a>
+        </div>
+    </div>
+
+<script>
+    function getPlanetFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('planet') || 'Земля';
+    }
+
+async function loadPlanetData() {
+    const planetName = getPlanetFromURL();
+    console.log("PLANET:", planetName);
+
+    document.getElementById('p-name').innerText = planetName;
+    document.getElementById('p-desc').innerText = "Встановлення зв'язку з супутником...";
+
+    try {
+        const response = await fetch('/get_planet_data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ planet: planetName })
+        });
+
+        console.log("RAW RESPONSE:", response);
+
+        const data = await response.json();
+        console.log("JSON:", data);
+
+        if (data.success) {
+
+            document.getElementById('p-name').innerText = data.name;
+            document.getElementById('p-type').innerText = data.type;
+            document.getElementById('p-desc').innerText = data.description;
+
+            // --- НАСА БЛОК САМЕ ТУТ ---
+            let photoBox = document.getElementById('nasa-photos');
+            if (photoBox) {
+                photoBox.innerHTML = "";
+
+                if (data.images && data.images.length > 0) {
+                    data.images.forEach(url => {
+                        const img = document.createElement("img");
+                        img.src = url;
+                        img.style.width = "180px";
+                        img.style.borderRadius = "12px";
+                        img.style.border = "1px solid rgba(255,255,255,0.2)";
+                        img.style.boxShadow = "0 0 10px rgba(0,0,0,0.5)";
+                        photoBox.appendChild(img);
+                    });
+                } else {
+                    photoBox.innerHTML = "<div style='color:#888'>Фото NASA не знайдено</div>";
+                }
+            }
+            // --- КІНЕЦЬ НАСА БЛОКУ ---
+
+        } else {
+            document.getElementById('p-desc').innerText = "Помилка: " + data.error;
+        }
+
+    } catch (err) {
+        console.error("FETCH ERROR:", err);
+        document.getElementById('p-desc').innerText = "Втрачено зв'язок з сервером.";
+    }
+}
+
+
+    function createStars() {
+        const starContainer = document.getElementById('starContainer');
+        const count = 200;
+        for (let i = 0; i < count; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const x = Math.random() * 100;
+            const y = Math.random() * 100;
+            const size = Math.random() * 2 + 1;
+            const duration = Math.random() * 3 + 2;
+            star.style.left = `${x}%`;
+            star.style.top = `${y}%`;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            star.style.setProperty('--duration', `${duration}s`);
+            starContainer.appendChild(star);
+        }
+    }
+    window.onload = function () {
+        createStars();
+        loadPlanetData();
+    };
+</script>
+</body>
+</html>

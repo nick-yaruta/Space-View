@@ -463,60 +463,76 @@
 
         const planetsData = [
             { 
-                name: 'Меркурій', size: 15, distance: 50, speed: 12, class: 'planet-mercury', color: 0xa5a5a5, 
-                texture: 'textures/mercury.jpeg',
-                link: 'mercury.html', 
-                description: 'Меркурій є найближчою планетою до Сонця, що робить його одним із найгарячіших об\'єктів. Його поверхня, що нагадує Місяць, вкрита кратерами. Через відсутність атмосфери, перепади температури між денною та нічною сторонами є екстремальними. Один рік тут триває всього 88 земних днів.' 
+                name: 'Меркурій',
+                size: 15, distance: 50, speed: 12,
+                class: 'planet-mercury', color: 0xa5a5a5,
+                texture: '/static/textures/mercury.jpeg',
+                link: '/planet?planet=Меркурій',
+                description: 'Меркурій є найближчою планетою до Сонця, що робить його одним із найгарячіших об\'єктів...'
             },
             { 
-                name: 'Венера', size: 22, distance: 80, speed: 21, class: 'planet-venus', color: 0xe6c288, 
-                texture: 'textures/venus.jpeg',
-                link: 'venus.html', 
-                description: 'Венера – друга планета від Сонця і найгарячіша планета в системі. Її щільна атмосфера, що складається переважно з вуглекислого газу, створює потужний парниковий ефект, підвищуючи температуру до +460°C. Венера обертається дуже повільно і у зворотному напрямку, ніж більшість планет.' 
+                name: 'Венера',
+                size: 22, distance: 80, speed: 21,
+                class: 'planet-venus', color: 0xe6c288,
+                texture: '/static/textures/venus.jpeg',
+                link: '/planet?planet=Венера',
+                description: 'Венера – друга планета від Сонця і найгарячіша планета в системі...'
             },
             { 
-                name: 'Земля', size: 24, distance: 110, speed: 30, class: 'planet-earth', color: 0x4da6ff, 
-                texture: 'textures/earth.jpeg',
-                link: 'earth.html', 
-                description: 'Земля – єдина відома планета у Всесвіті, що має великі запаси рідкої води на поверхні та сприятливі умови для життя. Вона має один природний супутник, Місяць, і її атмосфера захищає нас від сонячної радіації та метеоритів. Це третя планета від Сонця.' 
+                name: 'Земля',
+                size: 24, distance: 110, speed: 30,
+                class: 'planet-earth', color: 0x4da6ff,
+                texture: '/static/textures/earth.jpeg',
+                link: '/planet?planet=Земля',
+                description: 'Земля – єдина відома планета у Всесвіті, що має великі запаси рідкої води...'
             },
             { 
-                name: 'Марс', size: 20, distance: 140, speed: 45, class: 'planet-mars', color: 0xff6b4a, 
-                texture: 'textures/mars.jpeg',
-                link: 'mars.html', 
-                description: 'Марс, або Червона планета, отримав свій колір завдяки високому вмісту оксиду заліза (іржі) на поверхні. Хоча зараз він холодний і пустельний, є докази того, що в минулому на ньому була рідка вода. Марс має два маленькі супутники, Фобос та Деймос, і є об\'єктом активного дослідження космічними апаратами.' 
+                name: 'Марс',
+                size: 20, distance: 140, speed: 45,
+                class: 'planet-mars', color: 0xff6b4a,
+                texture: '/static/textures/mars.jpeg',
+                link: '/planet?planet=Марс',
+                description: 'Марс, або Червона планета, отримав свій колір завдяки високому вмісту оксиду заліза...'
             },
             { 
-                name: 'Юпітер', size: 45, distance: 200, speed: 90, class: 'planet-jupiter', color: 0xbc6c25, 
-                texture: 'textures/jupiter.jpeg',
-                link: 'jupiter.html', 
-                description: 'Юпітер – найбільша планета Сонячної системи, газовий гігант, маса якого перевищує сумарну масу всіх інших планет. Його найвідоміша риса — Велика Червона Пляма, гігантський шторм, що лютує вже сотні років. Юпітер має величезну кількість супутників, включаючи чотири великі – Іо, Європу, Ганімед та Каллісто.' 
+                name: 'Юпітер',
+                size: 45, distance: 200, speed: 90,
+                class: 'planet-jupiter', color: 0xbc6c25,
+                texture: '/static/textures/jupiter.jpeg',
+                link: '/planet?planet=Юпітер',
+                description: 'Юпітер – найбільша планета Сонячної системи, газовий гігант...'
             },
             { 
-                name: 'Сатурн', size: 40, distance: 270, speed: 135, class: 'planet-saturn', color: 0xf4e4ba, 
-                texture: 'textures/saturn.jpeg',
-                link: 'saturn.html', 
-                description: 'Сатурн – газовий гігант, відомий своєю вражаючою системою кілець, які складаються переважно з мільярдів частинок льоду та каміння. Незважаючи на величезний розмір, Сатурн має найменшу щільність серед усіх планет – він міг би плавати у воді! Також він має велику кількість супутників, серед яких виділяється Титан.' 
+                name: 'Сатурн',
+                size: 40, distance: 270, speed: 135,
+                class: 'planet-saturn', color: 0xf4e4ba,
+                texture: '/static/textures/saturn.jpeg',
+                link: '/planet?planet=Сатурн',
+                description: 'Сатурн – газовий гігант, відомий своєю вражаючою системою кілець...'
             },
             { 
-                name: 'Уран', size: 30, distance: 330, speed: 180, class: 'planet-uranus', color: 0xa8e6cf, 
-                texture: 'textures/uranus.jpeg',
-                link: 'uranus.html', 
-                description: 'Уран – крижаний гігант, що має незвичайний нахил осі обертання – він обертається "на боці". Через це пори року на Урані дуже екстремальні. Він має блідо-блакитний колір завдяки метану в атмосфері, який поглинає червоне світло.' 
+                name: 'Уран',
+                size: 30, distance: 330, speed: 180,
+                class: 'planet-uranus', color: 0xa8e6cf,
+                texture: '/static/textures/uranus.jpeg',
+                link: '/planet?planet=Уран',
+                description: 'Уран – крижаний гігант із нахиленою віссю обертання...'
             },
             { 
-                name: 'Нептун', size: 28, distance: 380, speed: 240, class: 'planet-neptune', color: 0x4b7bec, 
-                texture: 'textures/neptune.jpeg',
-                link: 'neptune.html', 
-                description: 'Нептун – найвіддаленіша планета від Сонця і другий за розміром крижаний гігант. Він відомий своїми найсильнішими вітрами у Сонячній системі. Незважаючи на величезну відстань, він має яскравий синій колір, що відрізняє його від блідого Урана. Його найбільший супутник – Тритон.' 
+                name: 'Нептун',
+                size: 28, distance: 380, speed: 240,
+                class: 'planet-neptune', color: 0x4b7bec,
+                texture: '/static/textures/neptune.jpeg',
+                link: '/planet?planet=Нептун',
+                description: 'Нептун – найвіддаленіша планета від Сонця з найсильнішими вітрами у системі...'
             }
         ];
-        
+
         const sunData = {
-            name: 'Сонце', size: 60, color: 0xffd700, isStar: true, 
-            texture: 'textures/sun.jpeg',
-            link: 'sun.html', 
-            description: 'Сонце — це зірка класу G2V, центр нашої Сонячної системи, яка містить понад 99.8% її загальної маси. Воно складається з гарячої плазми і генерує енергію через ядерний синтез, забезпечуючи світло та тепло, необхідні для підтримки життя на Землі. Його діаметр приблизно у 109 разів більший за діаметр Землі.'
+            name: 'Сонце', size: 60, color: 0xffd700, isStar: true,
+            texture: '/static/textures/sun.jpeg',
+            link: '/planet?planet=Сонце',
+            description: 'Сонце — центр нашої Сонячної системи, зірка класу G2V...'
         };
 
         const system = document.getElementById('solarSystem');
@@ -671,7 +687,7 @@
                 scene.add(planetMesh);
                 
                 if (objectData.name === 'Сатурн') {
-                    const ringTexture = textureLoader.load('textures/saturn-ring.jpeg');
+                    const ringTexture = textureLoader.load('static/textures/saturn-ring.png');
                     const ringGeo = new THREE.RingGeometry(1.0, 1.6, 64); 
                     
                     const pos = ringGeo.attributes.position;
