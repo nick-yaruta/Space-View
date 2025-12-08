@@ -13,8 +13,8 @@
             background-image: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
             min-height: 100vh;
             width: 100vw;
-            overflow-x: hidden;    /* прибрали overflow:hidden */
-            overflow-y: auto;      /* дозволяємо скролити */
+            overflow-x: hidden;   
+            overflow-y: auto;     
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
         }
@@ -266,7 +266,6 @@ async function loadPlanetData() {
             document.getElementById('p-type').innerText = data.type;
             document.getElementById('p-desc').innerText = data.description;
 
-            // --- НАСА БЛОК САМЕ ТУТ ---
             let photoBox = document.getElementById('nasa-photos');
             if (photoBox) {
                 photoBox.innerHTML = "";
@@ -285,7 +284,6 @@ async function loadPlanetData() {
                     photoBox.innerHTML = "<div style='color:#888'>Фото NASA не знайдено</div>";
                 }
             }
-            // --- КІНЕЦЬ НАСА БЛОКУ ---
 
         } else {
             document.getElementById('p-desc').innerText = "Помилка: " + data.error;

@@ -49,12 +49,10 @@ def get_planet_data():
     if not page.exists():
         return jsonify({'success': False, 'error': 'Планету не знайдено'})
 
-    # Опис
     paragraphs = page.text.split("\n")
     summary = "\n".join(paragraphs[:3])
     text = page.text
 
-    # Характеристики
     def extract_strict(keys):
         for key in keys:
             pattern = rf"{key}\s*[:=]\s*([\d\s.,+\-]+)"
@@ -88,7 +86,6 @@ def get_planet_data():
 
     p_type = "Планета Сонячної системи" if "(планета)" in wiki_name else "Небесне тіло"
 
-    # NASA IMAGES
     images = get_nasa_images(planet_name)
 
     return jsonify({
@@ -141,7 +138,6 @@ def get_nasa_images(planet):
 
             href = links[0].get("href", "")
 
-            # фільтр сміття
             lower = href.lower()
             bad = ["movie", "logo", "poster", "drawing", "art", "cartoon"]
             if any(b in lower for b in bad):
